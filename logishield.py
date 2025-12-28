@@ -46,58 +46,34 @@ audit_report = audit_manifest(sample_manifest)
 print(f"\nFINAL REPORT:\n{json.dumps(audit_report, indent=2)}")
 import streamlit as st
 import pandas as pd
-import json
 
-# --- Page Config ---
-st.set_page_config(page_title="LogiShield AI | Compliance Dashboard", layout="wide")
-
-st.title("🛡️ LogiShield AI")
-st.subheader("Global Trade Compliance & Risk Audit")
-
-# --- Sidebar: Industry Rules ---
-st.sidebar.header("Regulation Settings")
-industry = st.sidebar.selectbox("Select Niche", ["Wine & Spirits", "Pharmaceuticals", "Electronics"])
-strictness = st.sidebar.slider("Audit Sensitivity", 0, 100, 85)
-
-# --- Main Interface ---
-st.write(f"### Active Audit: {industry}")
-
-# Upload Section
+# 1. Load the Data
 uploaded_file = st.file_uploader("Upload Shipping Manifest (JSON/CSV)", type=['json', 'csv'])
 
-# Mock Data for Demonstration
-if uploaded_file is None:
-    st.info("Please upload a file or use the sample manifest below.")
-    sample_data = [
-        {"Item": "Chardonnay Case", "HS_Code": "2204", "Value": 15000, "Origin": "France", "Destination": "USA"},
-        {"Item": "Lithium Batteries", "HS_Code": "8506", "Value": 2500, "Origin": "China", "Destination": "USA"}
-    ]
-    df = pd.DataFrame(sample_data)
-else:
-    df = pd.read_csv(uploaded_file) if uploaded_file.name.endswith('csv') else pd.read_json(uploaded_file)
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    st.write("### Data Preview")
+    st.dataframe(df.head())
 
-# Display the Data
-st.dataframe(df, use_container_width=True)
+    # 2. THE MAPPING STEP (Before the row loop)
+    # This creates a dropdown so you can select which column is the 'HS Code'
+    st.write("### Configure Audit")
+    target_column = st.selectbox("Which column contains the HTS/Product Code?", df.columns)
 
-# --- The AI Audit Logic (Visualized) ---
-if st.button("Run LogiShield Audit"):
-    with st.spinner('Analyzing against 2025 Trade Regulations...'):
-        # Simulated logic
-        st.divider()
-        col1, col2, col3 = st.columns(3)
-        
-        # Key Metrics
-        col1.metric("Compliance Score", "92%", "-8%")
-        col2.metric("Estimated Duties", "$2,250", "+$150")
-        col3.metric("Risk Level", "MODERATE", delta_color="inverse")
-        
-        # Detailed Flags
+    if st.button("Run LogiShield Audit"):
         st.write("### 🚩 Risk Findings")
+        
+        # 3. THE ROW LOOP (Now safe from KeyError)
         for index, row in df.iterrows():
-            if row['HS_Code'] == "8506":
-                st.error(f"**Item {index+1}: {row['Item']}** - WARNING: Missing UN38.3 Safety Certification for Lithium transport.")
-            if row['Origin'] == "China" and industry == "Electronics":
-                st.warning(f"**Item {index+1}: {row['Item']}** - Section 301 Tariff alert: Additional 25% duty may apply.")
+            # Use the dynamically selected column name
+            current_value = str(row[target_column])
+            
+            if "8506" in current_value:
+                st.error(f"**Item {index+1}** - WARNING: Lithium Battery detected. Check safety certs.")
+            
+            # Example: Check if the value is missing
+            if pd.isna(row[target_column]):
+                st.warning(f"**Item {index+1}** - Missing product code.")
 
-st.sidebar.markdown("---")
-st.sidebar.write("**LogiShield Alpha v1.0**")
+st.info("Mapping columns before the loop prevents the 'KeyError' you encountered.")
+

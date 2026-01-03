@@ -1,3 +1,42 @@
+# --- 1. LOGIN LOGIC ---
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+
+def login_user(email, password):
+    try:
+        response = supabase.auth.sign_in_with_password({"email": email, "password": password})
+        st.session_state.logged_in = True
+        st.session_state.user_email = email
+        st.rerun()
+    except Exception as e:
+        st.error(f"Login failed: {e}")
+
+def logout_user():
+    supabase.auth.sign_out()
+    st.session_state.logged_in = False
+    st.rerun()
+
+# --- 2. THE UI GATEKEEPER ---
+if not st.session_state.logged_in:
+    st.title("🔐 LogiShield Secure Access")
+    tab1, tab2 = st.tabs(["Login", "Create Account"])
+    
+    with tab1:
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        if st.button("Login"):
+            login_user(email, password)
+            
+    with tab2:
+        new_email = st.text_input("New Email")
+        new_password = st.text_input("New Password", type="password")
+        if st.button("Register"):
+            try:
+                supabase.auth.sign_up({"email": new_email, "password": new_password})
+                st.success("Account created! You can now login.")
+            except Exception as e:
+                st.error(f"Registration failed: {e}")
+    st.stop() # Stops the rest of the app from running until logged in
 import streamlit as st
 import pandas as pd
 from supabase import create_client # New Import
@@ -66,3 +105,7 @@ if st.session_state.audit_run:
 
         report_df = pd.DataFrame(st.session_state.audit_results)
         st.download_button("📥 Download CSV", report_df.to_csv(index=False), "report.csv")
+        st.sidebar.write(f"Logged in as: {st.session_state.user_email}")
+if st.sidebar.button("Logout"):
+    logout_user()
+

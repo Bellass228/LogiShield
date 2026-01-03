@@ -1,4 +1,3 @@
-[span_3](start_span)GEMINI_API_KEY = AIzaSyDefUlwYlC9-I1GnAuGoPJpqiKUzk7GkrI
-NEXT_PUBLIC_SUPABASE_URL=https://wsmcectdvtotwenjrzhm.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY=sb_publishable_ucZXCkNSYYHQYEsLu8nmnw_6ZyrdfSm
- 
+GEMINI_API_KEY = "AIzaSyDefUlwYlC9-I1GnAuGoPJpqiKUzk7GkrI"
+SUPABASE_URL = "https://wsmcectdvtotwenjrzhm.supabase.co"
+SUPABASE_KEY = "sb_publishable_ucZXCkNSYYHQYEsLu8nmnw_6ZyrdfSm"

@@ -54,3 +54,17 @@ if st.session_state.audit_run:
         # Download option
         report_df = pd.DataFrame(st.session_state.audit_results)
         st.download_button("Download CSV", report_df.to_csv(), "report.csv")
+        if st.button("Test Database Connection"):
+    # 1. Prepare a small piece of data
+    test_data = {
+        "filename": "test_manifest.csv",
+        "findings": {"status": "Connected", "message": "It works!"}
+    }
+    
+    # 2. Send it to your table
+    try:
+        response = supabase.table("audit_history").insert(test_data).execute()
+        st.success("🚀 Data appeared in Supabase! Check your dashboard.")
+    except Exception as e:
+        st.error(f"Failed to send data: {e}")
+
